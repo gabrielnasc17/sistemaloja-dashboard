@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <style>
+    :root {
+      --bg: #08111f;
+      --bg2: #0b1628;
+      --panel: rgba(16, 28, 48, .94);
+      --border: rgba(255,255,255,.08);
+      --text: #f5f7fb;
+      --muted: #93a4bd;
+      --blue: #4f8cff;
+      --cyan: #35c2ff;
+      --purple: #9b6cff;
+      --orange: #ff9f43;
+      --red: #ff5d73;
+      --pink: #ff6fd8;
+      --yellow: #ffd166;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: Inter, Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(79,140,255,.16), transparent 34%),
+        radial-gradient(circle at top right, rgba(155,108,255,.12), transparent 28%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+    }
+
+    .hidden { display: none !important; }
+
+    .auth-page {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+    }
+
+    .auth-card {
+      width: min(430px, 100%);
+      background: rgba(16,28,48,.96);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 28px;
+      box-shadow: 0 25px 65px rgba(0,0,0,.35);
+    }
+
+    .auth-logo {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto 18px;
+      display: grid;
+      place-items: center;
+      border-radius: 17px;
+      font-weight: 900;
+      font-size: 21px;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+    }
+
+    .auth-card h1 {
+      text-align: center;
+      margin: 0;
+      font-size: 25px;
+    }
+
+    .auth-card .subtitle {
+      text-align: center;
+      color: var(--muted);
+      margin: 8px 0 23px;
+      font-size: 13px;
+    }
+
+    .auth-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+      padding: 5px;
+      border-radius: 13px;
+      background: rgba(255,255,255,.04);
+      margin-bottom: 20px;
+    }
+
+    .auth-tab {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 10px;
+      min-height: 40px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .auth-tab.active {
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      color: white;
+    }
+
+    .field {
+      margin-bottom: 13px;
+    }
+
+    .field label {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 7px;
+    }
+
+    .field input {
+      width: 100%;
+      height: 46px;
+      border: 1px solid var(--border);
+      border-radius: 11px;
+      color: var(--text);
+      background: rgba(255,255,255,.055);
+      padding: 0 13px;
+      outline: none;
+    }
+
+    .field input:focus {
+      border-color: rgba(79,140,255,.7);
+      box-shadow: 0 0 0 3px rgba(79,140,255,.08);
+    }
+
+    .auth-submit {
+      width: 100%;
+      min-height: 46px;
+      margin-top: 5px;
+      border: 0;
+      border-radius: 11px;
+      cursor: pointer;
+      color: white;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+    }
+
+    .auth-msg {
+      display: none;
+      margin: 14px 0 0;
+      border-radius: 10px;
+      padding: 11px 12px;
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .auth-msg.error {
+      display: block;
+      color: #ffbdc7;
+      background: rgba(255,93,115,.09);
+      border: 1px solid rgba(255,93,115,.2);
+    }
+
+    .auth-msg.success {
+      display: block;
+      color: #bfe6ff;
+      background: rgba(53,194,255,.08);
+      border: 1px solid rgba(53,194,255,.2);
+    }
+
+    .small-note {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.5;
+      margin-top: 14px;
+      text-align: center;
+    }
+
+    .container {
+      width: min(1460px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 24px 0 44px;
+    }
+
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    .title-area { display: flex; align-items: center; gap: 14px; }
+
+    .logo {
+      width: 48px; height: 48px; border-radius: 14px;
+      display: grid; place-items: center;
+      font-weight: 900; font-size: 20px;
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+    }
+
+    .title h1 { margin: 0; font-size: 28px; letter-spacing: -.7px; }
+    .title p { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+
+    .filters-top {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    select, .dash-btn {
+      min-height: 42px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      color: var(--text);
+      background: rgba(255,255,255,.055);
+      padding: 0 14px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .dash-btn {
+      cursor: pointer;
+      font-weight: 700;
+    }
+
+    .refresh-btn {
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      border: 0;
+    }
+
+    .logout-btn {
+      background: rgba(255,93,115,.08);
+      border-color: rgba(255,93,115,.18);
+    }
+
+    .filter-strip {
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 9px 12px;
+      margin-bottom: 14px;
+      background: rgba(16,28,48,.68);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+
+    .filter-title {
+      color: var(--muted);
+      font-size: 12px;
+      margin-right: 4px;
+    }
+
+    .filter-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(79,140,255,.14);
+      border: 1px solid rgba(79,140,255,.28);
+      color: #dce8ff;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .filter-chip button {
+      width: 20px; height: 20px;
+      border: 0; border-radius: 50%;
+      color: white; cursor: pointer;
+      background: rgba(255,255,255,.09);
+    }
+
+    .clear-btn {
+      margin-left: auto;
+      min-height: 32px;
+      font-size: 12px;
+      padding: 0 11px;
+      display: none;
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .card, .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: 0 12px 30px rgba(0,0,0,.12);
+    }
+
+    .card {
+      position: relative;
+      overflow: hidden;
+      min-height: 128px;
+      padding: 18px;
+    }
+
+    .topline {
+      height: 4px;
+      border-radius: 999px;
+      margin-bottom: 15px;
+    }
+
+    .blue .topline { background: var(--blue); }
+    .cyan .topline { background: var(--cyan); }
+    .purple .topline { background: var(--purple); }
+    .orange .topline { background: var(--orange); }
+    .red .topline { background: var(--red); }
+
+    .label {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .95px;
+      margin-bottom: 9px;
+    }
+
+    .value { font-size: 26px; font-weight: 850; letter-spacing: -.6px; }
+    .subvalue { margin-top: 7px; font-size: 12px; color: var(--muted); }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1.55fr 1fr;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+
+    .grid-2.equal { grid-template-columns: 1fr 1fr; }
+
+    .panel {
+      padding: 18px;
+      min-height: 360px;
+    }
+
+    .panel-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .panel h2 { margin: 0; font-size: 16px; }
+    .panel small { color: var(--muted); }
+
+    .metric-tabs { display: flex; gap: 8px; }
+
+    .metric-tab {
+      padding: 7px 10px;
+      min-height: auto;
+      font-size: 12px;
+      border-radius: 9px;
+      border: 1px solid var(--border);
+      color: white;
+      cursor: pointer;
+      background: rgba(255,255,255,.05);
+    }
+
+    .metric-tab.active {
+      background: linear-gradient(135deg, var(--blue), var(--purple));
+      border-color: transparent;
+    }
+
+    .chart-wrap { position: relative; height: 286px; cursor: pointer; }
+
+    .table-wrap { overflow: auto; max-height: 300px; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+
+    th, td {
+      padding: 12px 10px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      white-space: nowrap;
+    }
+
+    th { color: var(--muted); font-weight: 600; }
+
+    .pill {
+      display: inline-flex;
+      padding: 5px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(255,255,255,.07);
+      border: 1px solid var(--border);
+    }
+
+    .stock-low { color: #ff8598; font-weight: 800; }
+
+    .loading, .error {
+      position: fixed;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%);
+      padding: 12px 18px;
+      border-radius: 12px;
+      background: #17243a;
+      border: 1px solid var(--border);
+      z-index: 50;
+    }
+
+    .error { color: #ffadba; }
+
+    @media (max-width: 1100px) {
+      .cards { grid-template-columns: repeat(2, 1fr); }
+      .grid-2, .grid-2.equal { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 620px) {
+      .cards { grid-template-columns: 1fr; }
+      .container { width: min(100% - 18px, 1460px); }
+      .title h1 { font-size: 22px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <section id="authPage" class="auth-page">
+
+    <div class="auth-card">
+      <div class="auth-logo">SL</div>
+
+      <h1>SistemaLoja</h1>
+      <p class="subtitle">Acesso ao dashboard</p>
+
+      <div class="auth-tabs">
+        <button id="loginTab" class="auth-tab active" onclick="showAuth('login')">
+          Entrar
+        </button>
+
+        <button id="registerTab" class="auth-tab" onclick="showAuth('register')">
+          Criar conta
+        </button>
+      </div>
+
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="field">
+          <label>E-mail</label>
+          <input id="loginEmail" type="email" autocomplete="email" required>
+        </div>
+
+        <div class="field">
+          <label>Senha</label>
+          <input id="loginPassword" type="password" autocomplete="current-password" required>
+        </div>
+
+        <button class="auth-submit" type="submit">Entrar</button>
+      </form>
+
+      <form id="registerForm" class="hidden" onsubmit="handleRegister(event)">
+        <div class="field">
+          <label>Nome</label>
+          <input id="registerName" type="text" required>
+        </div>
+
+        <div class="field">
+          <label>E-mail</label>
+          <input id="registerEmail" type="email" required>
+        </div>
+
+        <div class="field">
+          <label>Senha</label>
+          <input id="registerPassword" type="password" minlength="8" required>
+        </div>
+
+        <div class="field">
+          <label>Confirmar senha</label>
+          <input id="registerPassword2" type="password" minlength="8" required>
+        </div>
+
+        <button class="auth-submit" type="submit">
+          Solicitar acesso
+        </button>
+
+        <div class="small-note">
+          O cadastro precisa ser aprovado pelo administrador antes do primeiro acesso.
+        </div>
+      </form>
+
+      <div id="authMessage" class="auth-msg"></div>
+    </div>
+
+  </section>
+
+  <main id="dashboardPage" class="hidden">
+    <div class="container">
+
+      <header>
+        <div class="title-area">
+          <div class="logo">SL</div>
+
+          <div class="title">
+            <h1>Dashboard • SistemaLoja</h1>
+            <p id="updatedAt">Carregando dados...</p>
+          </div>
+        </div>
+
+        <div class="filters-top">
+          <span id="loggedUser" style="color:#93a4bd;font-size:12px"></span>
+
+          <select id="periodo">
+            <option value="7">Últimos 7 dias</option>
+            <option value="30" selected>Últimos 30 dias</option>
+            <option value="90">Últimos 90 dias</option>
+            <option value="365">Últimos 365 dias</option>
+          </select>
+
+          <button class="dash-btn refresh-btn" id="btnAtualizar" onclick="carregarDashboard()">
+            Atualizar
+          </button>
+
+          <button class="dash-btn logout-btn" onclick="handleLogout()">
+            Sair
+          </button>
+        </div>
+      </header>
+
+      <div class="filter-strip">
+        <span class="filter-title">Filtros ativos:</span>
+        <div id="filterChips"></div>
+
+        <button class="dash-btn clear-btn" id="btnLimpar" onclick="limparFiltros()">
+          Limpar filtros
+        </button>
+      </div>
+
+      <section class="cards">
+        <div class="card blue">
+          <div class="topline"></div>
+          <div class="label">Faturamento</div>
+          <div class="value" id="faturamento">—</div>
+          <div class="subvalue">No filtro atual</div>
+        </div>
+
+        <div class="card cyan">
+          <div class="topline"></div>
+          <div class="label">Vendas</div>
+          <div class="value" id="vendas">—</div>
+          <div class="subvalue">No filtro atual</div>
+        </div>
+
+        <div class="card purple">
+          <div class="topline"></div>
+          <div class="label">Ticket médio</div>
+          <div class="value" id="ticketMedio">—</div>
+          <div class="subvalue">No filtro atual</div>
+        </div>
+
+        <div class="card orange">
+          <div class="topline"></div>
+          <div class="label">Itens vendidos</div>
+          <div class="value" id="itensVendidos">—</div>
+          <div class="subvalue">No filtro atual</div>
+        </div>
+
+        <div class="card red">
+          <div class="topline"></div>
+          <div class="label">Estoque baixo</div>
+          <div class="value" id="estoqueBaixo">—</div>
+          <div class="subvalue">No filtro atual</div>
+        </div>
+      </section>
+
+      <section class="grid-2">
+
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Desempenho por dia</h2>
+              <small>Clique em um ponto para filtrar todo o painel</small>
+            </div>
+
+            <div class="metric-tabs">
+              <button class="metric-tab active" id="tabFaturamento" onclick="trocarMetrica('faturamento')">
+                Faturamento
+              </button>
+
+              <button class="metric-tab" id="tabVendas" onclick="trocarMetrica('vendas')">
+                Vendas
+              </button>
+            </div>
+          </div>
+
+          <div class="chart-wrap">
+            <canvas id="chartPrincipal"></canvas>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Formas de pagamento</h2>
+              <small>Clique em uma forma de pagamento para filtrar tudo</small>
+            </div>
+          </div>
+
+          <div class="chart-wrap">
+            <canvas id="chartPagamentos"></canvas>
+          </div>
+        </div>
+
+      </section>
+
+      <section class="grid-2 equal">
+
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Produtos mais vendidos</h2>
+              <small>Clique em um produto para cruzar os indicadores</small>
+            </div>
+          </div>
+
+          <div class="chart-wrap">
+            <canvas id="chartProdutos"></canvas>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <div>
+              <h2>Produtos com estoque baixo</h2>
+              <small>Respeita os filtros selecionados</small>
+            </div>
+          </div>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Produto</th>
+                  <th>Categoria</th>
+                  <th>Estoque</th>
+                  <th>Preço</th>
+                </tr>
+              </thead>
+
+              <tbody id="tbEstoque"></tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+
+    </div>
+  </main>
+
+  <div id="loading" class="loading hidden">Carregando...</div>
+  <div id="error" class="error hidden"></div>
+
+  <script>
+    let sessionToken = localStorage.getItem('sl_session') || null;
+    let currentUser = null;
+
+    let chartPrincipal;
+    let chartPagamentos;
+    let chartProdutos;
+    let dadosAtuais = null;
+    let metricaPrincipal = 'faturamento';
+
+    const filtros = {
+      dias: 30,
+      formaPagamento: null,
+      produtoId: null,
+      produtoNome: null,
+      data: null
+    };
+
+    const PALETTE = [
+      '#4f8cff',
+      '#35c2ff',
+      '#9b6cff',
+      '#ff9f43',
+      '#ff5d73',
+      '#ff6fd8',
+      '#ffd166'
+    ];
+
+    Chart.defaults.color = '#c8d2e1';
+    Chart.defaults.borderColor = 'rgba(255,255,255,.08)';
+
+    function showAuth(mode) {
+      const login = mode === 'login';
+
+      document.getElementById('loginForm')
+        .classList.toggle('hidden', !login);
+
+      document.getElementById('registerForm')
+        .classList.toggle('hidden', login);
+
+      document.getElementById('loginTab')
+        .classList.toggle('active', login);
+
+      document.getElementById('registerTab')
+        .classList.toggle('active', !login);
+
+      setAuthMessage('');
+    }
+
+    function setAuthMessage(message, type) {
+      const el = document.getElementById('authMessage');
+
+      el.textContent = message || '';
+      el.className = 'auth-msg';
+
+      if (message) {
+        el.classList.add(type || 'error');
+      }
+    }
+
+    function handleRegister(event) {
+      event.preventDefault();
+
+      const name = document.getElementById('registerName').value;
+      const email = document.getElementById('registerEmail').value;
+      const password = document.getElementById('registerPassword').value;
+      const password2 = document.getElementById('registerPassword2').value;
+
+      if (password !== password2) {
+        setAuthMessage('As senhas não coincidem.', 'error');
+        return;
+      }
+
+      setLoading(true);
+
+      google.script.run
+        .withSuccessHandler(result => {
+          setLoading(false);
+
+          if (!result.ok) {
+            setAuthMessage(result.message, 'error');
+            return;
+          }
+
+          document.getElementById('registerForm').reset();
+
+          setAuthMessage(result.message, 'success');
+        })
+        .withFailureHandler(err => {
+          setLoading(false);
+          setAuthMessage(err.message || String(err), 'error');
+        })
+        .registerUser(name, email, password);
+    }
+
+    function handleLogin(event) {
+      event.preventDefault();
+
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+
+      setLoading(true);
+
+      google.script.run
+        .withSuccessHandler(result => {
+          setLoading(false);
+
+          if (!result.ok) {
+            setAuthMessage(result.message, 'error');
+            return;
+          }
+
+          sessionToken = result.token;
+          currentUser = result.user;
+
+          localStorage.setItem('sl_session', sessionToken);
+
+          abrirDashboard();
+        })
+        .withFailureHandler(err => {
+          setLoading(false);
+          setAuthMessage(err.message || String(err), 'error');
+        })
+        .loginUser(email, password);
+    }
+
+    function handleLogout() {
+      const oldToken = sessionToken;
+
+      sessionToken = null;
+      currentUser = null;
+      localStorage.removeItem('sl_session');
+
+      document.getElementById('dashboardPage')
+        .classList.add('hidden');
+
+      document.getElementById('authPage')
+        .classList.remove('hidden');
+
+      showAuth('login');
+
+      google.script.run.logoutUser(oldToken);
+    }
+
+    function checkExistingSession() {
+      if (!sessionToken) return;
+
+      google.script.run
+        .withSuccessHandler(result => {
+          if (!result.ok) {
+            localStorage.removeItem('sl_session');
+            sessionToken = null;
+            return;
+          }
+
+          currentUser = result.user;
+          abrirDashboard();
+        })
+        .validateSession(sessionToken);
+    }
+
+    function abrirDashboard() {
+      document.getElementById('authPage')
+        .classList.add('hidden');
+
+      document.getElementById('dashboardPage')
+        .classList.remove('hidden');
+
+      document.getElementById('loggedUser').textContent =
+        currentUser ? currentUser.name : '';
+
+      carregarDashboard();
+    }
+
+    function moeda(v) {
+      return Number(v || 0).toLocaleString('pt-BR', {
+        style: 'currency',
+        currency: 'BRL'
+      });
+    }
+
+    function numero(v) {
+      return Number(v || 0).toLocaleString('pt-BR');
+    }
+
+    function dataBR(iso) {
+      if (!iso) return '';
+      const [a,m,d] = iso.split('-');
+      return `${d}/${m}/${a}`;
+    }
+
+    function dataCurta(iso) {
+      if (!iso) return '';
+      const [a,m,d] = iso.split('-');
+      return `${d}/${m}`;
+    }
+
+    function setLoading(active) {
+      document.getElementById('loading')
+        .classList.toggle('hidden', !active);
+    }
+
+    function mostrarErro(msg) {
+      const el = document.getElementById('error');
+
+      el.textContent = msg;
+      el.classList.remove('hidden');
+
+      setTimeout(() => el.classList.add('hidden'), 7000);
+    }
+
+    function trocarMetrica(metrica) {
+      metricaPrincipal = metrica;
+
+      document.getElementById('tabFaturamento')
+        .classList.toggle('active', metrica === 'faturamento');
+
+      document.getElementById('tabVendas')
+        .classList.toggle('active', metrica === 'vendas');
+
+      if (dadosAtuais) renderizarGraficoPrincipal();
+    }
+
+    function removerFiltro(tipo) {
+      if (tipo === 'forma') filtros.formaPagamento = null;
+
+      if (tipo === 'produto') {
+        filtros.produtoId = null;
+        filtros.produtoNome = null;
+      }
+
+      if (tipo === 'data') filtros.data = null;
+
+      carregarDashboard();
+    }
+
+    function limparFiltros() {
+      filtros.formaPagamento = null;
+      filtros.produtoId = null;
+      filtros.produtoNome = null;
+      filtros.data = null;
+
+      carregarDashboard();
+    }
+
+    function renderizarChips() {
+      const box = document.getElementById('filterChips');
+      const chips = [];
+
+      if (filtros.formaPagamento) {
+        chips.push(`
+          <span class="filter-chip">
+            Pagamento: ${escapeHtml(filtros.formaPagamento)}
+            <button onclick="removerFiltro('forma')">×</button>
+          </span>
+        `);
+      }
+
+      if (filtros.produtoId) {
+        chips.push(`
+          <span class="filter-chip">
+            Produto: ${escapeHtml(filtros.produtoNome || filtros.produtoId)}
+            <button onclick="removerFiltro('produto')">×</button>
+          </span>
+        `);
+      }
+
+      if (filtros.data) {
+        chips.push(`
+          <span class="filter-chip">
+            Dia: ${dataBR(filtros.data)}
+            <button onclick="removerFiltro('data')">×</button>
+          </span>
+        `);
+      }
+
+      box.innerHTML = chips.length
+        ? chips.join('')
+        : '<span style="color:#7387a6;font-size:12px">Nenhum</span>';
+
+      document.getElementById('btnLimpar').style.display =
+        chips.length ? 'inline-flex' : 'none';
+    }
+
+    function renderizarGraficoPrincipal() {
+      if (chartPrincipal) chartPrincipal.destroy();
+
+      const vendasDia = dadosAtuais.vendasDia || [];
+      const ehFaturamento = metricaPrincipal === 'faturamento';
+
+      chartPrincipal = new Chart(
+        document.getElementById('chartPrincipal'),
+        {
+          type: 'line',
+
+          data: {
+            labels: vendasDia.map(x => dataCurta(x.dia)),
+
+            datasets: [{
+              data: vendasDia.map(x =>
+                ehFaturamento ? x.faturamento : x.vendas
+              ),
+
+              borderColor: ehFaturamento ? '#4f8cff' : '#35c2ff',
+              backgroundColor: ehFaturamento
+                ? 'rgba(79,140,255,.14)'
+                : 'rgba(53,194,255,.14)',
+
+              borderWidth: 3,
+              tension: .34,
+              fill: true
+            }]
+          },
+
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+
+            onClick: (event, elements) => {
+              if (!elements.length) return;
+
+              const item = vendasDia[elements[0].index];
+
+              filtros.data =
+                filtros.data === item.dia
+                  ? null
+                  : item.dia;
+
+              carregarDashboard();
+            },
+
+            plugins: {
+              legend: { display: false }
+            }
+          }
+        }
+      );
+    }
+
+    function renderizarPagamentos(data) {
+      if (chartPagamentos) chartPagamentos.destroy();
+
+      const pagamentos = data.pagamentos || [];
+
+      chartPagamentos = new Chart(
+        document.getElementById('chartPagamentos'),
+        {
+          type: 'doughnut',
+
+          data: {
+            labels: pagamentos.map(x => x.forma),
+
+            datasets: [{
+              data: pagamentos.map(x => x.faturamento),
+              backgroundColor: pagamentos.map(
+                (_,i) => PALETTE[i % PALETTE.length]
+              ),
+              borderColor: '#101c30',
+              borderWidth: 3
+            }]
+          },
+
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '66%',
+
+            onClick: (event, elements) => {
+              if (!elements.length) return;
+
+              const item = pagamentos[elements[0].index];
+
+              filtros.formaPagamento =
+                filtros.formaPagamento === item.forma
+                  ? null
+                  : item.forma;
+
+              carregarDashboard();
+            }
+          }
+        }
+      );
+    }
+
+    function renderizarProdutos(data) {
+      if (chartProdutos) chartProdutos.destroy();
+
+      const produtos = data.produtos || [];
+
+      chartProdutos = new Chart(
+        document.getElementById('chartProdutos'),
+        {
+          type: 'bar',
+
+          data: {
+            labels: produtos.map(x => x.nome),
+
+            datasets: [{
+              data: produtos.map(x => x.quantidade),
+
+              backgroundColor: produtos.map(
+                (_,i) => PALETTE[i % PALETTE.length]
+              ),
+
+              borderRadius: 8
+            }]
+          },
+
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+
+            onClick: (event, elements) => {
+              if (!elements.length) return;
+
+              const item = produtos[elements[0].index];
+
+              if (filtros.produtoId === item.id) {
+                filtros.produtoId = null;
+                filtros.produtoNome = null;
+              } else {
+                filtros.produtoId = item.id;
+                filtros.produtoNome = item.nome;
+              }
+
+              carregarDashboard();
+            },
+
+            plugins: {
+              legend: { display: false }
+            }
+          }
+        }
+      );
+    }
+
+    function renderizar(data) {
+      dadosAtuais = data;
+
+      const r = data.resumo;
+
+      document.getElementById('faturamento').textContent =
+        moeda(r.faturamento);
+
+      document.getElementById('vendas').textContent =
+        numero(r.total_vendas);
+
+      document.getElementById('ticketMedio').textContent =
+        moeda(r.ticket_medio);
+
+      document.getElementById('itensVendidos').textContent =
+        numero(r.itens_vendidos);
+
+      document.getElementById('estoqueBaixo').textContent =
+        numero(r.produtos_estoque_baixo);
+
+      document.getElementById('updatedAt').textContent =
+        'Atualizado em ' +
+        new Date(data.atualizadoEm).toLocaleString('pt-BR');
+
+      renderizarChips();
+      renderizarGraficoPrincipal();
+      renderizarPagamentos(data);
+      renderizarProdutos(data);
+
+      const tbody = document.getElementById('tbEstoque');
+
+      if (!data.estoqueBaixo.length) {
+        tbody.innerHTML =
+          '<tr><td colspan="4">Nenhum produto encontrado.</td></tr>';
+      } else {
+        tbody.innerHTML = data.estoqueBaixo.map(p => `
+          <tr>
+            <td>${escapeHtml(p.nome)}</td>
+            <td><span class="pill">${escapeHtml(p.categoria)}</span></td>
+            <td class="${p.estoque <= 2 ? 'stock-low' : ''}">
+              ${numero(p.estoque)}
+            </td>
+            <td>${moeda(p.preco)}</td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    function carregarDashboard() {
+      if (!sessionToken) return;
+
+      filtros.dias =
+        Number(document.getElementById('periodo').value) || 30;
+
+      setLoading(true);
+
+      google.script.run
+        .withSuccessHandler(data => {
+          setLoading(false);
+          renderizar(data);
+        })
+        .withFailureHandler(err => {
+          setLoading(false);
+
+          const message =
+            err && err.message ? err.message : String(err);
+
+          if (
+            message.toLowerCase().includes('sessão') ||
+            message.toLowerCase().includes('sessao')
+          ) {
+            handleLogout();
+            setAuthMessage(
+              'Sua sessão expirou. Entre novamente.',
+              'error'
+            );
+
+            return;
+          }
+
+          mostrarErro(message);
+        })
+        .getDashboardData(sessionToken, filtros);
+    }
+
+    function escapeHtml(value) {
+      const div = document.createElement('div');
+      div.textContent = value == null ? '' : String(value);
+      return div.innerHTML;
+    }
+
+    document.getElementById('periodo')
+      .addEventListener('change', carregarDashboard);
+
+    showAuth('login');
+    checkExistingSession();
+  </script>
+
+</body>
+</html>

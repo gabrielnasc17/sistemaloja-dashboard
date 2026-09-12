@@ -1,0 +1,4 @@
+{
+  "api_token": "COLOQUE_UMA_CHAVE_FORTE_AQUI",
+  "sql_connection": "DRIVER={ODBC Driver 18 for SQL Server};SERVER=localhost;DATABASE=SistemaLoja;Trusted_Connection=yes;Encrypt=yes;TrustServerCertificate=yes;"
+}
